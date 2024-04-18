@@ -1,16 +1,28 @@
 const { StatusCodes } = require('http-status-codes')
 const Cart = require('../model/cart')
+const User = require('../model/user')
 
 // create
 const createCart = async (req,res) => {
     try {
-        let { products } = req.body
-        let user = req.userId
+        let { products, shipping, tax, total, discount, final } = req.body
+        // let user = req.userId
+
+        let userData = await User.findById({_id: req.userId})
+
+        let extCart = await Cart.findOne({ user : req.userId })
+        if(extCart)
+            return res.status(StatusCodes.CONFLICT).json({ status: false, msg: `Cart already exists`})
 
         // create cart
         let data = await Cart.create({
             user,
-            products
+            products,
+            shipping,
+            tax,
+            total,
+            discount,
+            final
         })
 
         
