@@ -34,7 +34,7 @@ const ProductSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
-        tax:{
+        tax: {
             type: Number,
             default: 0
         },

@@ -3,13 +3,13 @@ const Cart = require('./cart')
 const User = require('./user')
 
 const OrderSchema = new mongoose.Schema({
-    cartId: {
-        type: mongoose.Schema.ObjectId,
-        ref: Cart
+    cart: {
+        type: Object,
+        default: {}
     },
-    userId: {
-        type: mongoose.Schema.ObjectId,
-        ref: User
+    user: {
+        type: Object,
+        default: {}
     },
     paymentId: {
         type: String,
@@ -18,7 +18,7 @@ const OrderSchema = new mongoose.Schema({
     paymentMode: {
         type: String,
         trim: true,
-        enum: ["cod", "upi", "online", "wallets", "card"],
+        enum: ["cod", "online"],
         default: "cod"
     },
     paymentStatus: {

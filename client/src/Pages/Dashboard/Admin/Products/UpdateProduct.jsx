@@ -11,6 +11,7 @@ function UpdateProduct() {
     const [SKU,setSKU] = useState('')
     const [category,setCategory] = useState('')
     const [discount,setDiscount] = useState(0.0)
+    const [tax,setTax] = useState(0.0)
 
     const [loading,setLoading] = useState(false)
 
@@ -30,6 +31,7 @@ function UpdateProduct() {
                 setImage(res.data.product.image)
                 setDiscount(res.data.product.discount)
                 setSKU(res.data.product.SKU)
+                setTax(res.data.product.tax)
             }).catch(err => toast.error(err.response.data.msg))
     }
 
@@ -51,7 +53,7 @@ function UpdateProduct() {
         readInit()
     },[])
     
-
+    // to uploadin image to server
     const imageHandler = async (e) => {
         e.preventDefault()
         try {
@@ -82,50 +84,48 @@ function UpdateProduct() {
         }
     }
 
-//Delete image
-const deleteImage = async (e) => {
-    e.preventDefault()
-    try {
-        if(window.confirm(`Are you sure to delete an image`)) {
-        await axios.delete(`/api/file/delete?product=${params.id}`)
-           .then(res => {
-                toast.success(res.data.msg)
-                setImage('')
-            }).catch(err => {
-                toast.error(err.response.data.msg)
-            })
+    //delete image
+    const deleteImage = async (e) => {
+        e.preventDefault()
+        try {
+            if(window.confirm(`Are you sure to delete an image?`)) {
+                await axios.delete(`/api/file/delete?product=${params.id}`)
+               .then(res => {
+                    toast.success(res.data.msg)
+                    setImage('')
+                }).catch(err => {
+                    toast.error(err.response.data.msg)
+                })
+            }
+        }catch(err) {
+            toast.error(err.message)
         }
     }
-    catch (err) {
-        toast.error(err.message)
-    }
-}
 
+    // update the data
+    const submitHandler = async (e) => {
+        e.preventDefault()
+        try {
+            let data  = {
+                title,
+                desc,
+                category,
+                price,
+                SKU,
+                discount,
+                image,
+                tax
+            }
 
-//update the data
-const submitHandler = async (e) => {
-    e.preventDefault()
-    try {
-        let data = {
-            title,
-            desc,
-            price,
-            SKU,
-            category,
-            discount,
-            image
+             await axios.patch(`/api/product/update/${params.id}`,data)
+                .then(res => {
+                    toast.success(res.data.msg)
+                    navigate(`/dashboard/superadmin/products`)
+                }).catch(err => toast.error(err.response.data.msg))
+        } catch (err) {
+            toast.error(err.message)
         }
-       
-        await axios.patch(`/api/product/update/${params.id}`,data)
-        .then(res => {
-            toast.success(res.data.msg)
-            navigate(`/dashboard/superadmin/products`)
-
-        }).catch(err => toast.error(err.response.data.msg))
-    } catch (err) {
-        toast.error(err.message)
     }
-}
 
   return (
     <div className='container'>
@@ -158,7 +158,7 @@ const submitHandler = async (e) => {
                              </label>
                         ) : (
                             <div className="card position-relative">
-                                <button onClick={deleteImage} className='btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle'>
+                                <button onClick={deleteImage} className="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle">
                                     <i className="bi bi-x-circle"></i>
                                 </button>
                                 <img src={image ? `/uploads/${image}` : ''} alt="no pic" className="card-img-top" style={{ width:'45%'}} />
@@ -197,6 +197,10 @@ const submitHandler = async (e) => {
                 <div className="form-group mt-2">
                     <label htmlFor="discount">Discount</label>
                     <input type="number" name="discount" value={discount} onChange={(e) => setDiscount(e.target.value)} id="discount" className="form-control" required />
+                </div>
+                <div className="form-group mt-2">
+                    <label htmlFor="tax">Tax</label>
+                    <input type="number" name="tax" value={tax} onChange={(e) => setTax(e.target.value)} id="tax" className="form-control" required />
                 </div>
                 <div className="form-group mt-2">
                     <button onClick={submitHandler} className="btn btn-success">Update Product</button>

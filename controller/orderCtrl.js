@@ -4,15 +4,11 @@ const { StatusCodes } = require('http-status-codes')
 // create
 const createOrder = async (req,res) => {
     try {
-        let { cartId, userId, paymentId, paymentMode, paymentStatus, orderStatus, deliveryStatus } = req.body
-
-        let extOrder = await Order.findOne({ cartId })
-            if(extOrder)
-                return res.status(StatusCodes.CONFLICT).json({ status: false, msg: `Order is already confirmed for cart items`})
+        let { cart, user, paymentId, paymentMode, paymentStatus, orderStatus, deliveryStatus } = req.body
 
         let newOrder = await Order.create({
-            cartId,
-            userId,
+            cart,
+            user,
             paymentId,
             paymentMode,
             paymentStatus,
@@ -34,9 +30,9 @@ const allOrder = async (req,res) => {
         // reading current user id => middleware auth
         let id = req.userId
             // filtering orders w.r.to current user id
-        let data = await orderData.filter(item => item.userId == id)
+        let data = await orderData.filter(item => item.user._id == id)
 
-        return res.status(StatusCodes.OK).json({ status: true, length: data.length, order: data })
+        return res.status(StatusCodes.OK).json({ status: true, length: data.length, orders: data })
     } catch (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ status: false, msg: err.message })
     }

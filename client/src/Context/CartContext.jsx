@@ -17,6 +17,8 @@ function CartProvider(props) {
     const [total, setTotal] = useState(localStorage.getItem("total")? Number(localStorage.getItem("total")):0);
 
 
+
+
     useEffect(() => {
         let totalAmount = cart.reduce((acc,item) => {
             return acc + item.price * item.quantity
@@ -40,6 +42,14 @@ function CartProvider(props) {
         setDiscount(ds)
         localStorage.setItem('discount', ds)
     },[cart,discount])
+
+    useEffect(() => {
+        let ta = cart.reduce((acc,item) => {
+            return(( acc + item.price * item.quantity) * (item.tax/100))
+        }, 0)
+        setTax(ta)
+        localStorage.setItem('tax', ta)
+    },[cart,tax])
 
     useEffect(() => {
         let finalTotal = (total + tax + shipping) - discount 
@@ -127,9 +137,49 @@ function CartProvider(props) {
         }
     }
 
+    const storeCart = async () => {
+        try {
+            let res = await axios.get(`/api/cart/all`)
+            let extCart = res.data.carts.find((item) => item.user._id == contextToken.currentUser._id)
+            
+                if(!extCart) {
+                    addNewCart({ 
+                        products: cart,
+                        shipping,
+                        tax,
+                        discount,
+                        final,
+                        total
+                    })
+                    clearStorage()
+                } else {
+                    updateCart(extCart._id, {
+                        products: cart,
+                        shipping,
+                        tax,
+                        discount,
+                        final,
+                        total
+                    })
+                    clearStorage()
+                }
+        } catch (err) {
+            toast.error(err.message)
+        }
+    }
+
+    const clearStorage = () => {
+        localStorage.removeItem("cart")
+        localStorage.removeItem("tax")
+        localStorage.removeItem("shipping")
+        localStorage.removeItem("discount")
+        localStorage.removeItem("total")
+        localStorage.removeItem("final")
+    }
+
 
   return (
-    <CartContext.Provider value={{ cart, total,tax,discount,final,shipping, addToCart, removeFromCart, increment, decrement }}>
+    <CartContext.Provider value={{ cart, total,tax,discount,final,shipping, addToCart, removeFromCart, increment, decrement, storeCart, setCart, setDiscount, setTotal, setFinal, setTax, setShipping }}>
         {
             props.children
         }

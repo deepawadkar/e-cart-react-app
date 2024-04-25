@@ -8,15 +8,16 @@ const createCart = async (req,res) => {
         let { products, shipping, tax, total, discount, final } = req.body
         // let user = req.userId
 
-        let userData = await User.findById({_id: req.userId})
+        let userData = await User.findById({_id: req.userId })
 
-        let extCart = await Cart.findOne({ user : req.userId })
-        if(extCart)
-            return res.status(StatusCodes.CONFLICT).json({ status: false, msg: `Cart already exists`})
+
+        let extCart = await Cart.findOne({user: req.userId })
+            if(extCart)
+                return res.status(StatusCodes.CONFLICT).json({status: false, msg: `Cart already exists`})
 
         // create cart
         let data = await Cart.create({
-            user,
+            user: userData,
             products,
             shipping,
             tax,
@@ -35,8 +36,15 @@ const createCart = async (req,res) => {
 const allCart = async (req,res) => {
     try {
         let data = await Cart.find({})
+        let userId = req.query.userId
 
-        return res.status(StatusCodes.OK).json({ status: true, length: data.length, carts: data})
+        if(userId) {
+            let cartData = await data.filter(item => item.user._id == userId)
+            return res.status(StatusCodes.OK).json({ status: true, length: cartData.length, carts: cartData})
+        } else {
+            return res.status(StatusCodes.OK).json({ status: true, length: data.length, carts: data})
+        }
+       
     } catch (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ status: false, msg: err.message })
     }
@@ -48,7 +56,6 @@ const singleCart = async (req,res) => {
         let id = req.params.id 
 
         let extCart = await Cart.findById(id)
-
             if(!extCart)
                 return res.status(StatusCodes.NOT_FOUND).json({ status: false, msg: `Requested cart id not found`})
 
